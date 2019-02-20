@@ -1,0 +1,85 @@
+sudo: required
+language: c++
+git:
+  depth: 1
+
+matrix:
+  include:
+
+    # Code Style
+    - os: linux
+      name: "CODE::STYLE"
+      dist: xenial
+      compiler: clang-format
+      env:
+        - MATRIX_EVAL=""
+      before_script:
+        - wget https://raw.githubusercontent.com/Sarcasm/run-clang-format/master/run-clang-format.py
+        - chmod +x run-clang-format.py
+      script:
+        - ./run-clang-format.py -r Source
+
+    # Code Quality
+    - os: linux
+      name: "CODE::QUALITY"
+      dist: xenial
+      compiler: clang
+      cache: apt
+      addons:
+        apt:
+          update: true
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:jonathonf/development-tools'
+          packages:
+            - gcc-8
+            - g++-8
+            - clang
+            - cppcheck
+            - libgl1-mesa-dev
+            - libglu1-mesa-dev
+      env:
+        - MATRIX_EVAL="CC=clang && CXX=clang++"
+      before_script:
+        - eval "$(curl -sL https://raw.githubusercontent.com/ryuichis/oclint-cpp-travis-ci-examples/master/oclint-ci-install.sh)"
+        - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON CMakeLists.txt
+      script:
+        - /usr/bin/cppcheck --quiet --enable=all --error-exitcode=1 --force
+          --inline-suppr --suppressions-list=./CI/datpak/Tools/Cppcheck/suppress.conf
+          --std=c++14 --language=c++ -I Source main.cpp Source/*
+        - oclint-json-compilation-database -e Libs -e _deps
+
+    # Linux GCC Build
+    - os: linux
+      name: "CODE::BUILD"
+      dist: xenial
+      compiler: cmake
+      cache: apt
+
+      addons:
+        apt:
+          update: true
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:jonathonf/development-tools'
+          packages:
+            - gcc-8
+            - g++-8
+            - libtbb-dev
+            - libharfbuzz-bin
+            - libharfbuzz-dev
+            - libxrandr-dev
+            - libxi-dev
+            - libxinerama-dev
+            - libxcursor-dev
+            - libgl1-mesa-dev
+            - libglu1-mesa-dev
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+      before_script:
+        - cmake CMakeLists.txt
+      script:
+        - cmake --build .
+
+before_install:
+  - eval "${MATRIX_EVAL}"
