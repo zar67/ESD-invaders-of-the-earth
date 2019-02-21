@@ -1,6 +1,6 @@
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/CI)
 
-set(MD5URL "https://www.dropbox.com/s/76ho4jwc3m2ksle/payload.md5?dl=1")
+set(MD5URL "https://www.dropbox.com/s/p3ksr2le29rpzvo/datpak-achelous.latest.md5?dl=1")
 set(MD5DL ${CMAKE_SOURCE_DIR}/CI/datpak.zip.md5)
 
 ## download the MD5
@@ -20,7 +20,7 @@ endif()
 file(STRINGS ${MD5DL} MD5FILE LIMIT_INPUT 32)
 message("${MD5FILE}")
 
-set(PAKURL "https://www.dropbox.com/s/zzmo56pam3msihp/payload.zip?dl=1")
+set(PAKURL "https://www.dropbox.com/s/hlads1huol4sfc1/datpak-achelous.latest.zip?dl=1")
 set(PAKDL  ${CMAKE_SOURCE_DIR}/CI/datpak.zip)
 set(PAKDIR ${CMAKE_SOURCE_DIR}/CI/datpak)
 

@@ -1,7 +1,13 @@
-sudo: false
-language: c++
+# .travis.yml
+
+sudo: required
+language: cpp
 git:
-  depth: 1
+  depth: 5
+
+cache:
+  - directories:
+    - ~/.cache/apt # This must be accessible for non-root users
 
 matrix:
   include:
@@ -24,23 +30,21 @@ matrix:
       name: "CODE::QUALITY"
       dist: xenial
       compiler: clang
-      cache: apt
       addons:
         apt:
-          update: true
           sources:
             - ubuntu-toolchain-r-test
             - sourceline: 'ppa:jonathonf/development-tools'
-          packages:
-            - gcc-8
-            - g++-8
-            - clang
-            - cppcheck
-            - libgl1-mesa-dev
-            - libglu1-mesa-dev
       env:
         - MATRIX_EVAL="CC=clang && CXX=clang++"
       before_script:
+        - chmod +x ${TRAVIS_BUILD_DIR}/.travis.cache && ${TRAVIS_BUILD_DIR}/.travis.cache --load
+        - sudo apt-get update
+        - sudo apt-get install -y --no-install-recommends --no-install-suggests
+          gcc-8 g++-8 libtbb-dev libharfbuzz-bin libharfbuzz-dev libxrandr-dev
+          libxi-dev libxinerama-dev libxcursor-dev libgl1-mesa-dev
+          libglu1-mesa-dev cppcheck clang
+        - ${TRAVIS_BUILD_DIR}/.travis.cache --save
         - eval "$(curl -sL https://raw.githubusercontent.com/ryuichis/oclint-cpp-travis-ci-examples/master/oclint-ci-install.sh)"
         - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON CMakeLists.txt
       script:
@@ -54,32 +58,30 @@ matrix:
       name: "CODE::BUILD"
       dist: xenial
       compiler: cmake
-      cache: apt
-
       addons:
         apt:
-          update: true
           sources:
             - ubuntu-toolchain-r-test
             - sourceline: 'ppa:jonathonf/development-tools'
-          packages:
-            - gcc-8
-            - g++-8
-            - libtbb-dev
-            - libharfbuzz-bin
-            - libharfbuzz-dev
-            - libxrandr-dev
-            - libxi-dev
-            - libxinerama-dev
-            - libxcursor-dev
-            - libgl1-mesa-dev
-            - libglu1-mesa-dev
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
       before_script:
+        - chmod +x ${TRAVIS_BUILD_DIR}/.travis.cache && ${TRAVIS_BUILD_DIR}/.travis.cache --load
+        - sudo apt-get update
+        - sudo apt-get install -y --no-install-recommends --no-install-suggests
+          gcc-8 g++-8 libtbb-dev libharfbuzz-bin libharfbuzz-dev libxrandr-dev
+          libxi-dev libxinerama-dev libxcursor-dev libgl1-mesa-dev libglu1-mesa-dev
+        - ${TRAVIS_BUILD_DIR}/.travis.cache --save
+        - eval "$(curl -sL https://raw.githubusercontent.com/ryuichis/oclint-cpp-travis-ci-examples/master/oclint-ci-install.sh)"
         - cmake CMakeLists.txt
       script:
         - cmake --build .
 
 before_install:
   - eval "${MATRIX_EVAL}"
+
+branches:
+  only:
+  - master
+  - /^develop.*$/
+  - /^release.*$/
