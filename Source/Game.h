@@ -5,6 +5,10 @@
 #include "Components/GameObject.h"
 #include "Utility/Rect.h"
 
+const int NUM_OF_SHIPS = 40;
+const int COLUMNS = 8;
+const int NUM_OF_SHOTS = 10;
+
 /**
  *  An OpenGL Game based on ASGE.
  */
@@ -26,6 +30,14 @@ class SpaceInvadersGame : public ASGE::OGLGame
   int key_callback_id = -1;   /**< Key Input Callback ID. */
   int mouse_callback_id = -1; /**< Mouse Input Callback ID. */
 
-  // Add your GameObjects
+  // GameObjects
+  GameObject player;
+  GameObject ships[NUM_OF_SHIPS];
+  GameObject shots[NUM_OF_SHOTS];
+
   bool in_menu = true;
+  bool game_over = false;
+  bool game_won = false;
+  float enemy_direction = 1;
+  int score = 0;
 };
