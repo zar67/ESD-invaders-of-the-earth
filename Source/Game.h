@@ -2,7 +2,7 @@
 #include <Engine/OGLGame.h>
 #include <string>
 
-#include "Components/GameObject.h"
+#include "Components/GameObjectController.h"
 #include "Utility/Rect.h"
 
 const int NUM_OF_SHIPS = 40;
@@ -29,6 +29,9 @@ class SpaceInvadersGame : public ASGE::OGLGame
 
   int key_callback_id = -1;   /**< Key Input Callback ID. */
   int mouse_callback_id = -1; /**< Mouse Input Callback ID. */
+
+  GameObjectController controller =
+    GameObjectController(game_width, game_height);
 
   // GameObjects
   GameObject player;

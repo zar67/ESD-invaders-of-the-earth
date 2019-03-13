@@ -37,20 +37,20 @@ vector2 GameObject::direction()
   return velocity;
 }
 
-void GameObject::direction(float x_, float y_)
+void GameObject::direction(float new_x, float new_y)
 {
-  velocity.x = x_;
-  velocity.y = y_;
+  velocity.x = new_x;
+  velocity.y = new_y;
 }
 
-float GameObject::speed()
+float GameObject::getSpeed()
 {
-  return speed_;
+  return speed;
 }
 
-void GameObject::speed(float s_)
+void GameObject::setSpeed(float new_speed)
 {
-  speed_ = s_;
+  speed = new_speed;
 }
 
 bool GameObject::visible()
@@ -58,7 +58,7 @@ bool GameObject::visible()
   return visibility;
 }
 
-void GameObject::visible(bool v)
+void GameObject::visible(bool shown)
 {
-  visibility = v;
+  visibility = shown;
 }

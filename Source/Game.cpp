@@ -51,7 +51,7 @@ bool SpaceInvadersGame::init()
 
   toggleFPS();
 
-  // input handling functions
+  // Input handling functions
   inputs->use_threads = false;
 
   key_callback_id =
@@ -60,17 +60,23 @@ bool SpaceInvadersGame::init()
   mouse_callback_id = inputs->addCallbackFnc(
     ASGE::E_MOUSE_CLICK, &SpaceInvadersGame::clickHandler, this);
 
-  // GameObject Setup
-  if (player.addSpriteComponent(renderer.get(),
-                                "images/playerShip1_orange.png"))
+  // Player Setup
+  float player_x = static_cast<float>(game_width) / 2 - 50;
+  float player_y = static_cast<float>(game_height) - 100;
+  if (!controller.setupObject(&player,
+                              renderer.get(),
+                              "images/playerShip1_orange.png",
+                              player_x,
+                              player_y,
+                              0,
+                              0,
+                              200.0f,
+                              99,
+                              75,
+                              true))
   {
-    player.spriteComponent()->getSprite()->xPos(float(game_width) / 2 - 50);
-    player.spriteComponent()->getSprite()->yPos(float(game_height) - 100);
-    player.speed(200.0f);
-  }
-  else
-  {
-    std::cout << "Player Sprite not set" << std::endl;
+    std::cout << "Player NOT setup correctly" << std::endl;
+    return false;
   }
 
   // Ship Setup
@@ -98,54 +104,60 @@ bool SpaceInvadersGame::init()
       file = "images/enemyBlack1.png";
     }
 
-    if (ships[i].addSpriteComponent(renderer.get(), file))
+    if (!controller.setupObject(&ships[i],
+                                renderer.get(),
+                                file,
+                                static_cast<float>(i % COLUMNS) * 60 + 20,
+                                static_cast<float>(i % 5) * 70 + 20,
+                                1,
+                                0,
+                                50,
+                                50,
+                                50,
+                                true))
     {
-      ships[i].spriteComponent()->getSprite()->height(50);
-      ships[i].spriteComponent()->getSprite()->width(50);
-      ships[i].spriteComponent()->getSprite()->xPos(float(i % COLUMNS) * 60 +
-                                                    20);
-      ships[i].spriteComponent()->getSprite()->yPos(float(i % 5) * 70 + 20);
-      ships[i].speed(50);
+      std::cout << "Ship " << i << " NOT setup correctly" << std::endl;
+      return false;
     }
   }
 
   // Setup Player Shots
   for (int i = 0; i < NUM_OF_SHOTS; i++)
   {
-    if (player_shots[i].addSpriteComponent(renderer.get(),
-                                           "images/laserBlue03.png"))
+    if (!controller.setupObject(&player_shots[i],
+                                renderer.get(),
+                                "images/laserBlue03.png",
+                                0,
+                                0,
+                                0,
+                                1,
+                                200,
+                                9,
+                                37,
+                                true))
     {
-      player_shots[i].spriteComponent()->getSprite()->xPos(0);
-      player_shots[i].spriteComponent()->getSprite()->yPos(0);
-      player_shots[i].speed(200);
-      player_shots[i].visible(false);
-      vector2 dir = vector2(0, 1);
-      dir.normalise();
-      player_shots[i].direction(dir.x, dir.y);
-    }
-    else
-    {
-      std::cout << "Player shot " << i << " not set" << std::endl;
+      std::cout << "Ship " << i << " NOT setup correctly" << std::endl;
+      return false;
     }
   }
 
   // Setup Enemy Shots
   for (int i = 0; i < NUM_OF_SHOTS; i++)
   {
-    if (enemy_shots[i].addSpriteComponent(renderer.get(),
-                                          "images/laserRed03.png"))
+    if (!controller.setupObject(&enemy_shots[i],
+                                renderer.get(),
+                                "images/laserRed03.png",
+                                0,
+                                0,
+                                0,
+                                -1,
+                                200,
+                                9,
+                                37,
+                                true))
     {
-      enemy_shots[i].spriteComponent()->getSprite()->xPos(0);
-      enemy_shots[i].spriteComponent()->getSprite()->yPos(0);
-      enemy_shots[i].speed(200);
-      enemy_shots[i].visible(false);
-      vector2 dir = vector2(0, -1);
-      dir.normalise();
-      enemy_shots[i].direction(dir.x, dir.y);
-    }
-    else
-    {
-      std::cout << "Enemy shot " << i << " not set" << std::endl;
+      std::cout << "Ship " << i << " NOT setup correctly" << std::endl;
+      return false;
     }
   }
 
@@ -273,43 +285,30 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
 
   if (!in_menu && !game_over && !game_won)
   {
-    // Move Player
-    float new_x = player.spriteComponent()->getSprite()->xPos();
-    if (player.direction().x == -1 &&
-        player.spriteComponent()->getSprite()->xPos() > 0)
-    {
-      new_x =
-        new_x - float(player.speed() * (game_time.delta.count() / 1000.f));
-    }
-    else if (player.direction().x == 1 &&
-             player.spriteComponent()->getSprite()->xPos() <
-               float(game_width - 100))
-    {
-      new_x =
-        new_x + float(player.speed() * (game_time.delta.count() / 1000.f));
-    }
-    player.spriteComponent()->getSprite()->xPos(new_x);
-
-    float prev_dir = enemy_direction;
+    // Move Objects
+    controller.moveObject(&player, game_time.delta.count() / 1000.0f);
 
     // Move Enemies
+    float prev_dir = enemy_direction;
     for (int i = 0; i < NUM_OF_SHIPS; i++)
     {
       float enemey_x = ships[i].spriteComponent()->getSprite()->xPos();
 
       if (enemy_direction > 0)
       {
-        enemey_x = enemey_x +
-                   float(ships[i].speed() * (game_time.delta.count() / 1000.f));
+        enemey_x =
+          enemey_x + static_cast<float>(ships[i].getSpeed() *
+                                        (game_time.delta.count() / 1000.f));
       }
       else
       {
-        enemey_x = enemey_x -
-                   float(ships[i].speed() * (game_time.delta.count() / 1000.f));
+        enemey_x =
+          enemey_x - static_cast<float>(ships[i].getSpeed() *
+                                        (game_time.delta.count() / 1000.f));
       }
 
       if (ships[COLUMNS - 1].spriteComponent()->getSprite()->xPos() + 40 >
-            float(game_width) - 20 &&
+            static_cast<float>(game_width) - 20 &&
           prev_dir == enemy_direction)
       {
         enemy_direction = -1;
@@ -381,9 +380,9 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
       {
         float current_y =
           player_shots[i].spriteComponent()->getSprite()->yPos();
-        current_y -=
-          float(player_shots[i].direction().y * player_shots[i].speed() *
-                (game_time.delta.count() / 1000.f));
+        current_y -= static_cast<float>(player_shots[i].direction().y *
+                                        player_shots[i].getSpeed() *
+                                        (game_time.delta.count() / 1000.f));
         player_shots[i].spriteComponent()->getSprite()->yPos(current_y);
       }
     }
@@ -395,14 +394,15 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
 
       if (ships[random_enemy].visible() && std::rand() % 50000000 + 1 < 2)
       {
-        new_x = ships[random_enemy].spriteComponent()->getSprite()->xPos() +
-                ships[random_enemy].spriteComponent()->getSprite()->width() / 2;
+        float new_x =
+          ships[random_enemy].spriteComponent()->getSprite()->xPos() +
+          ships[random_enemy].spriteComponent()->getSprite()->width() / 2;
         float new_y =
           ships[random_enemy].spriteComponent()->getSprite()->yPos() +
           ships[random_enemy].spriteComponent()->getSprite()->height() + 5;
         enemy_shots[i].spriteComponent()->getSprite()->xPos(new_x);
         enemy_shots[i].spriteComponent()->getSprite()->yPos(new_y);
-        enemy_shots[i].speed(200);
+        enemy_shots[i].setSpeed(200);
         enemy_shots[i].visible(true);
       }
     }
@@ -413,9 +413,9 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
       if (enemy_shots[i].visible())
       {
         float current_y = enemy_shots[i].spriteComponent()->getSprite()->yPos();
-        current_y -=
-          float(enemy_shots[i].direction().y * enemy_shots[i].speed() *
-                (game_time.delta.count() / 1000.f));
+        current_y -= static_cast<float>(enemy_shots[i].direction().y *
+                                        enemy_shots[i].getSpeed() *
+                                        (game_time.delta.count() / 1000.f));
         enemy_shots[i].spriteComponent()->getSprite()->yPos(current_y);
       }
     }
