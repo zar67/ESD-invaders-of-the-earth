@@ -40,6 +40,7 @@ SpaceInvadersGame::~SpaceInvadersGame()
  */
 bool SpaceInvadersGame::init()
 {
+  std::srand(static_cast<unsigned int>(time(nullptr)));
   setupResolution();
   if (!initAPI())
   {
@@ -108,17 +109,44 @@ bool SpaceInvadersGame::init()
     }
   }
 
-  // Setup Shots
+  // Setup Player Shots
   for (int i = 0; i < NUM_OF_SHOTS; i++)
   {
-    shots[i].addSpriteComponent(renderer.get(), "images/laserBlue03.png");
-    shots[i].spriteComponent()->getSprite()->xPos(0);
-    shots[i].spriteComponent()->getSprite()->yPos(0);
-    shots[i].speed(200);
-    shots[i].visible(false);
-    vector2 dir = vector2(0, 1);
-    dir.normalise();
-    shots[i].direction(dir.x, dir.y);
+    if (player_shots[i].addSpriteComponent(renderer.get(),
+                                           "images/laserBlue03.png"))
+    {
+      player_shots[i].spriteComponent()->getSprite()->xPos(0);
+      player_shots[i].spriteComponent()->getSprite()->yPos(0);
+      player_shots[i].speed(200);
+      player_shots[i].visible(false);
+      vector2 dir = vector2(0, 1);
+      dir.normalise();
+      player_shots[i].direction(dir.x, dir.y);
+    }
+    else
+    {
+      std::cout << "Player shot " << i << " not set" << std::endl;
+    }
+  }
+
+  // Setup Enemy Shots
+  for (int i = 0; i < NUM_OF_SHOTS; i++)
+  {
+    if (enemy_shots[i].addSpriteComponent(renderer.get(),
+                                          "images/laserRed03.png"))
+    {
+      enemy_shots[i].spriteComponent()->getSprite()->xPos(0);
+      enemy_shots[i].spriteComponent()->getSprite()->yPos(0);
+      enemy_shots[i].speed(200);
+      enemy_shots[i].visible(false);
+      vector2 dir = vector2(0, -1);
+      dir.normalise();
+      enemy_shots[i].direction(dir.x, dir.y);
+    }
+    else
+    {
+      std::cout << "Enemy shot " << i << " not set" << std::endl;
+    }
   }
 
   return true;
@@ -196,13 +224,13 @@ void SpaceInvadersGame::keyHandler(const ASGE::SharedEventData data)
   {
     for (int i = 0; i < NUM_OF_SHOTS; i++)
     {
-      if (!shots[i].visible())
+      if (!player_shots[i].visible())
       {
-        shots[i].visible(true);
-        shots[i].spriteComponent()->getSprite()->xPos(
+        player_shots[i].visible(true);
+        player_shots[i].spriteComponent()->getSprite()->xPos(
           player.spriteComponent()->getSprite()->xPos() +
           (player.spriteComponent()->getSprite()->width() / 2));
-        shots[i].spriteComponent()->getSprite()->yPos(
+        player_shots[i].spriteComponent()->getSprite()->yPos(
           player.spriteComponent()->getSprite()->yPos() - 10);
         break;
       }
@@ -263,6 +291,7 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
     player.spriteComponent()->getSprite()->xPos(new_x);
 
     float prev_dir = enemy_direction;
+
     // Move Enemies
     for (int i = 0; i < NUM_OF_SHIPS; i++)
     {
@@ -329,30 +358,65 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
     {
       for (int j = 0; j < NUM_OF_SHIPS; j++)
       {
-        if (shots[i].spriteComponent()->getBoundingBox().isInside(
+        if (player_shots[i].spriteComponent()->getBoundingBox().isInside(
               ships[j].spriteComponent()->getBoundingBox()) &&
-            shots[i].visible() && ships[j].visible())
+            player_shots[i].visible() && ships[j].visible())
         {
           ships[j].visible(false);
+          player_shots[i].visible(false);
           score += 5;
         }
       }
 
-      if (shots[i].spriteComponent()->getSprite()->yPos() < 0)
+      if (player_shots[i].spriteComponent()->getSprite()->yPos() < 0)
       {
-        shots[i].visible(false);
+        player_shots[i].visible(false);
       }
     }
 
-    // Update Shots
+    // Update Player Shots
     for (int i = 0; i < NUM_OF_SHOTS; i++)
     {
-      if (shots[i].visible())
+      if (player_shots[i].visible())
       {
-        float current_y = shots[i].spriteComponent()->getSprite()->yPos();
-        current_y -= float(shots[i].direction().y * shots[i].speed() *
-                           (game_time.delta.count() / 1000.f));
-        shots[i].spriteComponent()->getSprite()->yPos(current_y);
+        float current_y =
+          player_shots[i].spriteComponent()->getSprite()->yPos();
+        current_y -=
+          float(player_shots[i].direction().y * player_shots[i].speed() *
+                (game_time.delta.count() / 1000.f));
+        player_shots[i].spriteComponent()->getSprite()->yPos(current_y);
+      }
+    }
+
+    // Spawn Enemy Shots
+    for (int i = 0; i < NUM_OF_SHOTS; i++)
+    {
+      int random_enemy = std::rand() % (NUM_OF_SHIPS);
+
+      if (ships[random_enemy].visible() && std::rand() % 50000000 + 1 < 2)
+      {
+        new_x = ships[random_enemy].spriteComponent()->getSprite()->xPos() +
+                ships[random_enemy].spriteComponent()->getSprite()->width() / 2;
+        float new_y =
+          ships[random_enemy].spriteComponent()->getSprite()->yPos() +
+          ships[random_enemy].spriteComponent()->getSprite()->height() + 5;
+        enemy_shots[i].spriteComponent()->getSprite()->xPos(new_x);
+        enemy_shots[i].spriteComponent()->getSprite()->yPos(new_y);
+        enemy_shots[i].speed(200);
+        enemy_shots[i].visible(true);
+      }
+    }
+
+    // Update Enemy Shots
+    for (int i = 0; i < NUM_OF_SHOTS; i++)
+    {
+      if (enemy_shots[i].visible())
+      {
+        float current_y = enemy_shots[i].spriteComponent()->getSprite()->yPos();
+        current_y -=
+          float(enemy_shots[i].direction().y * enemy_shots[i].speed() *
+                (game_time.delta.count() / 1000.f));
+        enemy_shots[i].spriteComponent()->getSprite()->yPos(current_y);
       }
     }
   }
@@ -387,9 +451,17 @@ void SpaceInvadersGame::render(const ASGE::GameTime&)
 
     for (int i = 0; i < NUM_OF_SHOTS; i++)
     {
-      if (shots[i].visible())
+      if (player_shots[i].visible())
       {
-        renderer->renderSprite(*shots[i].spriteComponent()->getSprite());
+        renderer->renderSprite(*player_shots[i].spriteComponent()->getSprite());
+      }
+    }
+
+    for (int i = 0; i < NUM_OF_SHOTS; i++)
+    {
+      if (enemy_shots[i].visible())
+      {
+        renderer->renderSprite(*enemy_shots[i].spriteComponent()->getSprite());
       }
     }
 

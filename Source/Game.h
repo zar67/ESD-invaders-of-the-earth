@@ -33,7 +33,8 @@ class SpaceInvadersGame : public ASGE::OGLGame
   // GameObjects
   GameObject player;
   GameObject ships[NUM_OF_SHIPS];
-  GameObject shots[NUM_OF_SHOTS];
+  GameObject player_shots[NUM_OF_SHOTS];
+  GameObject enemy_shots[NUM_OF_SHOTS];
 
   bool in_menu = true;
   bool game_over = false;
