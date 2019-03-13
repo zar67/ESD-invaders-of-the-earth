@@ -24,14 +24,18 @@ class SpaceInvadersGame : public ASGE::OGLGame
   void clickHandler(const ASGE::SharedEventData data);
   void setupResolution();
 
+  bool setupObjects();
+  void updateGameStates();
+  void moveObjects(double delta_time);
+  void shotCollision();
+
   virtual void update(const ASGE::GameTime&) override;
   virtual void render(const ASGE::GameTime&) override;
 
   int key_callback_id = -1;   /**< Key Input Callback ID. */
   int mouse_callback_id = -1; /**< Mouse Input Callback ID. */
 
-  GameObjectController controller =
-    GameObjectController(game_width, game_height);
+  GameObjectController controller;
 
   // GameObjects
   GameObject player;
@@ -42,6 +46,5 @@ class SpaceInvadersGame : public ASGE::OGLGame
   bool in_menu = true;
   bool game_over = false;
   bool game_won = false;
-  float enemy_direction = 1;
   int score = 0;
 };

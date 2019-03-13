@@ -10,7 +10,7 @@
 class GameObjectController
 {
  public:
-  GameObjectController(const int width, const int height);
+  GameObjectController() = default;
   ~GameObjectController() = default;
 
   bool setupObject(GameObject* object,
@@ -26,6 +26,9 @@ class GameObjectController
                    bool start_shown);
 
   void moveObject(GameObject* object, double delta_time);
+
+  void gameWidth(float width);
+  void gameHeight(float height);
 
  private:
   float game_width = 0;

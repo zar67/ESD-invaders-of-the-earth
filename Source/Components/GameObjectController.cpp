@@ -5,12 +5,6 @@
 #include "GameObjectController.h"
 #include <iostream>
 
-GameObjectController::GameObjectController(const int width, const int height)
-{
-  game_width = static_cast<float>(width);
-  game_height = static_cast<float>(height);
-}
-
 bool GameObjectController::setupObject(GameObject* object,
                                        ASGE::Renderer* renderer,
                                        const std::string& texture_file_name,
@@ -64,6 +58,16 @@ void GameObjectController::moveObject(GameObject* object, double delta_time)
     float new_y = object->spriteComponent()->getSprite()->yPos();
     new_y += static_cast<float>(object->getSpeed() * object->direction().y *
                                 delta_time);
-    object->spriteComponent()->getSprite()->xPos(new_y);
+    object->spriteComponent()->getSprite()->yPos(new_y);
   }
+}
+
+void GameObjectController::gameWidth(float width)
+{
+  game_width = width;
+}
+
+void GameObjectController::gameHeight(float height)
+{
+  game_height = height;
 }

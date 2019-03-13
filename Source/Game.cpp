@@ -31,35 +31,8 @@ SpaceInvadersGame::~SpaceInvadersGame()
     static_cast<unsigned int>(mouse_callback_id));
 }
 
-/**
- *   @brief   Initialises the game.
- *   @details The game window is created and all assets required to
- *            run the game are loaded. The keyHandler and clickHandler
- *            callback should also be set in the initialise function.
- *   @return  True if the game initialised correctly.
- */
-bool SpaceInvadersGame::init()
+bool SpaceInvadersGame::setupObjects()
 {
-  std::srand(static_cast<unsigned int>(time(nullptr)));
-  setupResolution();
-  if (!initAPI())
-  {
-    return false;
-  }
-
-  renderer->setClearColour(ASGE::COLOURS::BLACK);
-
-  toggleFPS();
-
-  // Input handling functions
-  inputs->use_threads = false;
-
-  key_callback_id =
-    inputs->addCallbackFnc(ASGE::E_KEY, &SpaceInvadersGame::keyHandler, this);
-
-  mouse_callback_id = inputs->addCallbackFnc(
-    ASGE::E_MOUSE_CLICK, &SpaceInvadersGame::clickHandler, this);
-
   // Player Setup
   float player_x = static_cast<float>(game_width) / 2 - 50;
   float player_y = static_cast<float>(game_height) - 100;
@@ -130,13 +103,13 @@ bool SpaceInvadersGame::init()
                                 0,
                                 0,
                                 0,
-                                1,
+                                -1,
                                 200,
-                                9,
-                                37,
-                                true))
+                                10,
+                                20,
+                                false))
     {
-      std::cout << "Ship " << i << " NOT setup correctly" << std::endl;
+      std::cout << "Player Shot " << i << " NOT setup correctly" << std::endl;
       return false;
     }
   }
@@ -150,18 +123,51 @@ bool SpaceInvadersGame::init()
                                 0,
                                 0,
                                 0,
-                                -1,
+                                1,
                                 200,
-                                9,
-                                37,
-                                true))
+                                10,
+                                20,
+                                false))
     {
-      std::cout << "Ship " << i << " NOT setup correctly" << std::endl;
+      std::cout << "Enemy Shot " << i << " NOT setup correctly" << std::endl;
       return false;
     }
   }
-
   return true;
+}
+
+/**
+ *   @brief   Initialises the game.
+ *   @details The game window is created and all assets required to
+ *            run the game are loaded. The keyHandler and clickHandler
+ *            callback should also be set in the initialise function.
+ *   @return  True if the game initialised correctly.
+ */
+bool SpaceInvadersGame::init()
+{
+  std::srand(static_cast<unsigned int>(time(nullptr)));
+  setupResolution();
+  controller.gameHeight(static_cast<float>(game_height));
+  controller.gameWidth(static_cast<float>(game_width));
+  if (!initAPI())
+  {
+    return false;
+  }
+
+  renderer->setClearColour(ASGE::COLOURS::BLACK);
+
+  toggleFPS();
+
+  // Input handling functions
+  inputs->use_threads = false;
+
+  key_callback_id =
+    inputs->addCallbackFnc(ASGE::E_KEY, &SpaceInvadersGame::keyHandler, this);
+
+  mouse_callback_id = inputs->addCallbackFnc(
+    ASGE::E_MOUSE_CLICK, &SpaceInvadersGame::clickHandler, this);
+
+  return setupObjects();
 }
 
 /**
@@ -271,6 +277,120 @@ void SpaceInvadersGame::clickHandler(const ASGE::SharedEventData data)
   ASGE::DebugPrinter{} << "y_pos: " << y_pos << std::endl;
 }
 
+void SpaceInvadersGame::updateGameStates()
+{
+  game_won = true;
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    if (ships[i].visible())
+    {
+      game_won = false;
+      break;
+    }
+  }
+
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    if (ships[i].spriteComponent()->getBoundingBox().isInside(
+          player.spriteComponent()->getBoundingBox()))
+    {
+      game_over = true;
+    }
+  }
+}
+
+void SpaceInvadersGame::moveObjects(double delta_time)
+{
+  controller.moveObject(&player, delta_time);
+
+  // Move Enemies
+  float enemy_direction = ships[0].direction().x;
+  float prev_dir = enemy_direction;
+
+  if (ships[COLUMNS - 1].spriteComponent()->getSprite()->xPos() + 40 >
+        static_cast<float>(game_width) - 20 &&
+      prev_dir == enemy_direction)
+  {
+    enemy_direction = -1;
+  }
+  else if (ships[0].spriteComponent()->getSprite()->xPos() < 20 &&
+           prev_dir == enemy_direction)
+  {
+    enemy_direction = 1;
+  }
+
+  if (prev_dir != enemy_direction)
+  {
+    for (int i = 0; i < NUM_OF_SHIPS; i++)
+    {
+      ships[i].direction(enemy_direction, 400);
+    }
+  }
+
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    controller.moveObject(&ships[i], delta_time);
+    ships[i].direction(enemy_direction, 0);
+  }
+
+  for (int i = 0; i < NUM_OF_SHOTS; i++)
+  {
+    if (player_shots[i].visible())
+    {
+      controller.moveObject(&player_shots[i], delta_time);
+    }
+  }
+
+  for (int i = 0; i < NUM_OF_SHOTS; i++)
+  {
+    if (enemy_shots[i].visible())
+    {
+      controller.moveObject(&enemy_shots[i], delta_time);
+    }
+  }
+}
+
+void SpaceInvadersGame::shotCollision()
+{
+  // Player Shots
+  for (int i = 0; i < NUM_OF_SHOTS; i++)
+  {
+    for (int j = 0; j < NUM_OF_SHIPS; j++)
+    {
+      if (player_shots[i].spriteComponent()->getBoundingBox().isInside(
+            ships[j].spriteComponent()->getBoundingBox()) &&
+          player_shots[i].visible() && ships[j].visible())
+      {
+        ships[j].visible(false);
+        player_shots[i].visible(false);
+        score += 5;
+      }
+    }
+
+    if (player_shots[i].spriteComponent()->getSprite()->yPos() < 0)
+    {
+      player_shots[i].visible(false);
+    }
+  }
+
+  // Enemy Shots
+  for (int i = 0; i < NUM_OF_SHOTS; i++)
+  {
+    if (enemy_shots[i].spriteComponent()->getSprite()->yPos() >
+        static_cast<float>(game_height))
+    {
+      enemy_shots[i].visible(false);
+    }
+
+    if (enemy_shots[i].spriteComponent()->getBoundingBox().isInside(
+          player.spriteComponent()->getBoundingBox()) &&
+        enemy_shots[i].visible())
+    {
+      game_over = true;
+    }
+  }
+}
+
 /**
  *   @brief   Updates the scene
  *   @details Prepares the renderer subsystem before drawing the
@@ -285,107 +405,11 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
 
   if (!in_menu && !game_over && !game_won)
   {
-    // Move Objects
-    controller.moveObject(&player, game_time.delta.count() / 1000.0f);
+    updateGameStates();
 
-    // Move Enemies
-    float prev_dir = enemy_direction;
-    for (int i = 0; i < NUM_OF_SHIPS; i++)
-    {
-      float enemey_x = ships[i].spriteComponent()->getSprite()->xPos();
+    moveObjects(game_time.delta.count() / 1000.0f);
 
-      if (enemy_direction > 0)
-      {
-        enemey_x =
-          enemey_x + static_cast<float>(ships[i].getSpeed() *
-                                        (game_time.delta.count() / 1000.f));
-      }
-      else
-      {
-        enemey_x =
-          enemey_x - static_cast<float>(ships[i].getSpeed() *
-                                        (game_time.delta.count() / 1000.f));
-      }
-
-      if (ships[COLUMNS - 1].spriteComponent()->getSprite()->xPos() + 40 >
-            static_cast<float>(game_width) - 20 &&
-          prev_dir == enemy_direction)
-      {
-        enemy_direction = -1;
-      }
-      else if (ships[0].spriteComponent()->getSprite()->xPos() < 20 &&
-               prev_dir == enemy_direction)
-      {
-        enemy_direction = 1;
-      }
-
-      ships[i].spriteComponent()->getSprite()->xPos(enemey_x);
-    }
-
-    // Update enemy y position
-    if (prev_dir != enemy_direction)
-    {
-      for (int i = 0; i < NUM_OF_SHIPS; i++)
-      {
-        ships[i].spriteComponent()->getSprite()->yPos(
-          ships[i].spriteComponent()->getSprite()->yPos() + 10);
-      }
-    }
-
-    // Enemy Collision
-    for (int i = 0; i < NUM_OF_SHIPS; i++)
-    {
-      if (ships[i].spriteComponent()->getBoundingBox().isInside(
-            player.spriteComponent()->getBoundingBox()))
-      {
-        game_over = true;
-      }
-    }
-
-    game_won = true;
-    for (int i = 0; i < NUM_OF_SHIPS; i++)
-    {
-      if (ships[i].visible())
-      {
-        game_won = false;
-        break;
-      }
-    }
-
-    // Shot Collision Detection
-    for (int i = 0; i < NUM_OF_SHOTS; i++)
-    {
-      for (int j = 0; j < NUM_OF_SHIPS; j++)
-      {
-        if (player_shots[i].spriteComponent()->getBoundingBox().isInside(
-              ships[j].spriteComponent()->getBoundingBox()) &&
-            player_shots[i].visible() && ships[j].visible())
-        {
-          ships[j].visible(false);
-          player_shots[i].visible(false);
-          score += 5;
-        }
-      }
-
-      if (player_shots[i].spriteComponent()->getSprite()->yPos() < 0)
-      {
-        player_shots[i].visible(false);
-      }
-    }
-
-    // Update Player Shots
-    for (int i = 0; i < NUM_OF_SHOTS; i++)
-    {
-      if (player_shots[i].visible())
-      {
-        float current_y =
-          player_shots[i].spriteComponent()->getSprite()->yPos();
-        current_y -= static_cast<float>(player_shots[i].direction().y *
-                                        player_shots[i].getSpeed() *
-                                        (game_time.delta.count() / 1000.f));
-        player_shots[i].spriteComponent()->getSprite()->yPos(current_y);
-      }
-    }
+    shotCollision();
 
     // Spawn Enemy Shots
     for (int i = 0; i < NUM_OF_SHOTS; i++)
@@ -404,19 +428,6 @@ void SpaceInvadersGame::update(const ASGE::GameTime& game_time)
         enemy_shots[i].spriteComponent()->getSprite()->yPos(new_y);
         enemy_shots[i].setSpeed(200);
         enemy_shots[i].visible(true);
-      }
-    }
-
-    // Update Enemy Shots
-    for (int i = 0; i < NUM_OF_SHOTS; i++)
-    {
-      if (enemy_shots[i].visible())
-      {
-        float current_y = enemy_shots[i].spriteComponent()->getSprite()->yPos();
-        current_y -= static_cast<float>(enemy_shots[i].direction().y *
-                                        enemy_shots[i].getSpeed() *
-                                        (game_time.delta.count() / 1000.f));
-        enemy_shots[i].spriteComponent()->getSprite()->yPos(current_y);
       }
     }
   }
