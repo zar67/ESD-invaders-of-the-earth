@@ -69,6 +69,16 @@ void GameObjectController::applyGravity(GameObject* object, double delta_time)
     object->spriteComponent()->getSprite()->yPos(new_y);
 }
 
+void GameObjectController::applyQuadraticTrajectory(GameObject* object, double delta_time, int ship_row)
+{
+  //y = (1/10)(x-10)^2
+  float new_y = object->spriteComponent()->getSprite()->xPos() - (game_width / 2);
+  new_y *= new_y;
+  new_y /= 500;
+  new_y += static_cast<float>(ship_row * 70);
+  object->spriteComponent()->getSprite()->yPos(new_y);
+}
+
 void GameObjectController::gameWidth(float width)
 {
   game_width = width;

@@ -81,7 +81,7 @@ bool SpaceInvadersGame::setupObjects()
                                 renderer.get(),
                                 file,
                                 static_cast<float>(i % COLUMNS) * 60 + 20,
-                                static_cast<float>(i % 5) * 70 + 20,
+                                static_cast<float>(i % ROWS) * 70 + 20,
                                 1,
                                 0,
                                 50,
@@ -324,16 +324,19 @@ void SpaceInvadersGame::moveObjects(double delta_time)
   {
     for (int i = 0; i < NUM_OF_SHIPS; i++)
     {
-      ships[i].direction(enemy_direction, 400);
+      ships[i].direction(enemy_direction, 10);
     }
   }
-  */
+   */
 
   for (int i = 0; i < NUM_OF_SHIPS; i++)
   {
     controller.moveObject(&ships[i], delta_time);
+
     ships[i].direction(enemy_direction, 0);
-    controller.applyGravity(&ships[i], delta_time);
+
+    //controller.applyGravity(&ships[i], delta_time);
+    controller.applyQuadraticTrajectory(&ships[i], delta_time, i % ROWS);
   }
 
   for (int i = 0; i < NUM_OF_SHOTS; i++)
@@ -380,7 +383,7 @@ void SpaceInvadersGame::shotCollision()
   for (int i = 0; i < NUM_OF_SHOTS; i++)
   {
     if (enemy_shots[i].spriteComponent()->getSprite()->yPos() >
-        static_cast<float>(game_height))
+        static_cast<float>(game_height) - enemy_shots[i].spriteComponent()->getSprite()->height())
     {
       enemy_shots[i].visible(false);
     }

@@ -7,6 +7,7 @@
 
 const int NUM_OF_SHIPS = 40;
 const int COLUMNS = 8;
+const int ROWS = NUM_OF_SHIPS / COLUMNS;
 const int NUM_OF_SHOTS = 10;
 
 /**
