@@ -62,6 +62,13 @@ void GameObjectController::moveObject(GameObject* object, double delta_time)
   }
 }
 
+void GameObjectController::applyGravity(GameObject* object, double delta_time)
+{
+    float new_y = object->spriteComponent()->getSprite()->yPos();
+    new_y += static_cast<float>(gravity * delta_time);
+    object->spriteComponent()->getSprite()->yPos(new_y);
+}
+
 void GameObjectController::gameWidth(float width)
 {
   game_width = width;

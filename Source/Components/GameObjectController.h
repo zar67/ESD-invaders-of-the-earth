@@ -7,6 +7,8 @@
 
 #include "Components/GameObject.h"
 
+const float gravity = 9.18f;
+
 class GameObjectController
 {
  public:
@@ -26,6 +28,8 @@ class GameObjectController
                    bool start_shown);
 
   void moveObject(GameObject* object, double delta_time);
+
+  void applyGravity(GameObject* object, double delta_time);
 
   void gameWidth(float width);
   void gameHeight(float height);

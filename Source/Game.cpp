@@ -319,6 +319,7 @@ void SpaceInvadersGame::moveObjects(double delta_time)
     enemy_direction = 1;
   }
 
+  /*
   if (prev_dir != enemy_direction)
   {
     for (int i = 0; i < NUM_OF_SHIPS; i++)
@@ -326,11 +327,13 @@ void SpaceInvadersGame::moveObjects(double delta_time)
       ships[i].direction(enemy_direction, 400);
     }
   }
+  */
 
   for (int i = 0; i < NUM_OF_SHIPS; i++)
   {
     controller.moveObject(&ships[i], delta_time);
     ships[i].direction(enemy_direction, 0);
+    controller.applyGravity(&ships[i], delta_time);
   }
 
   for (int i = 0; i < NUM_OF_SHOTS; i++)
