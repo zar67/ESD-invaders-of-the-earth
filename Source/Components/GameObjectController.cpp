@@ -64,15 +64,18 @@ void GameObjectController::moveObject(GameObject* object, double delta_time)
 
 void GameObjectController::applyGravity(GameObject* object, double delta_time)
 {
-    float new_y = object->spriteComponent()->getSprite()->yPos();
-    new_y += static_cast<float>(gravity * delta_time);
-    object->spriteComponent()->getSprite()->yPos(new_y);
+  float new_y = object->spriteComponent()->getSprite()->yPos();
+  new_y += static_cast<float>(gravity * delta_time);
+  object->spriteComponent()->getSprite()->yPos(new_y);
 }
 
-void GameObjectController::applyQuadraticTrajectory(GameObject* object, double delta_time, int ship_row)
+void GameObjectController::applyQuadraticTrajectory(GameObject* object,
+                                                    double delta_time,
+                                                    int ship_row)
 {
-  //y = (1/10)(x-10)^2
-  float new_y = object->spriteComponent()->getSprite()->xPos() - (game_width / 2);
+  // y = (1/10)(x-10)^2
+  float new_y =
+    object->spriteComponent()->getSprite()->xPos() - (game_width / 2);
   new_y *= new_y;
   new_y /= 500;
   new_y += static_cast<float>(ship_row * 70);

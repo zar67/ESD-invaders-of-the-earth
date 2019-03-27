@@ -335,7 +335,7 @@ void SpaceInvadersGame::moveObjects(double delta_time)
 
     ships[i].direction(enemy_direction, 0);
 
-    //controller.applyGravity(&ships[i], delta_time);
+    // controller.applyGravity(&ships[i], delta_time);
     controller.applyQuadraticTrajectory(&ships[i], delta_time, i % ROWS);
   }
 
@@ -383,7 +383,8 @@ void SpaceInvadersGame::shotCollision()
   for (int i = 0; i < NUM_OF_SHOTS; i++)
   {
     if (enemy_shots[i].spriteComponent()->getSprite()->yPos() >
-        static_cast<float>(game_height) - enemy_shots[i].spriteComponent()->getSprite()->height())
+        static_cast<float>(game_height) -
+          enemy_shots[i].spriteComponent()->getSprite()->height())
     {
       enemy_shots[i].visible(false);
     }
