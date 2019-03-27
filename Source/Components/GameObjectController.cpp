@@ -3,7 +3,7 @@
 //
 
 #include "GameObjectController.h"
-#include <iostream>
+#include <math.h>
 
 bool GameObjectController::setupObject(GameObject* object,
                                        ASGE::Renderer* renderer,
@@ -73,11 +73,23 @@ void GameObjectController::applyQuadraticTrajectory(GameObject* object,
                                                     double delta_time,
                                                     int ship_row)
 {
-  // y = (1/10)(x-10)^2
+  // y = (1/10)(x-centre)^2
   float new_y =
     object->spriteComponent()->getSprite()->xPos() - (game_width / 2);
   new_y *= new_y;
   new_y /= 500;
+  new_y += static_cast<float>(ship_row * 70);
+  object->spriteComponent()->getSprite()->yPos(new_y);
+}
+
+void GameObjectController::applySinTrajectory(GameObject* object,
+                                              double delta_time,
+                                              int ship_row)
+{
+  // y = 8sin(x/4) + 8
+  float new_y = sin(object->spriteComponent()->getSprite()->xPos() / 4);
+  new_y *= 8;
+  new_y += 8;
   new_y += static_cast<float>(ship_row * 70);
   object->spriteComponent()->getSprite()->yPos(new_y);
 }

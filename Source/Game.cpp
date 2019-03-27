@@ -207,12 +207,32 @@ void SpaceInvadersGame::keyHandler(const ASGE::SharedEventData data)
     signalExit();
   }
 
-  if (key->key == ASGE::KEYS::KEY_ENTER)
+  else if (key->key == ASGE::KEYS::KEY_ENTER)
   {
     in_menu = false;
   }
 
-  if (!in_menu && !game_over && !game_won && key->key == ASGE::KEYS::KEY_A)
+  else if (key->key == ASGE::KEYS::KEY_UP &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    game_mode--;
+    if (game_mode < 0)
+    {
+      game_mode = 3;
+    }
+  }
+
+  else if (key->key == ASGE::KEYS::KEY_DOWN &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    game_mode++;
+    if (game_mode > 3)
+    {
+      game_mode = 0;
+    }
+  }
+
+  else if (!in_menu && !game_over && !game_won && key->key == ASGE::KEYS::KEY_A)
   {
     if (key->action == ASGE::KEYS::KEY_RELEASED)
     {
@@ -299,6 +319,52 @@ void SpaceInvadersGame::updateGameStates()
   }
 }
 
+void SpaceInvadersGame::normalEnemyMovement(float prev_dir,
+                                            float enemy_direction,
+                                            double delta_time)
+{
+  if (prev_dir != enemy_direction)
+  {
+    for (int i = 0; i < NUM_OF_SHIPS; i++)
+    {
+      ships[i].spriteComponent()->getSprite()->yPos(
+        ships[i].spriteComponent()->getSprite()->yPos() + 10);
+    }
+  }
+
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    controller.moveObject(&ships[i], delta_time);
+  }
+}
+
+void SpaceInvadersGame::gravityEnemyMovement(double delta_time)
+{
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    controller.moveObject(&ships[i], delta_time);
+    controller.applyGravity(&ships[i], delta_time);
+  }
+}
+
+void SpaceInvadersGame::quadraticEnemyMovement(double delta_time)
+{
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    controller.moveObject(&ships[i], delta_time);
+    controller.applyQuadraticTrajectory(&ships[i], delta_time, i % ROWS);
+  }
+}
+
+void SpaceInvadersGame::sinEnemyMovement(double delta_time)
+{
+  for (int i = 0; i < NUM_OF_SHIPS; i++)
+  {
+    controller.moveObject(&ships[i], delta_time);
+    controller.applySinTrajectory(&ships[i], delta_time, i % ROWS);
+  }
+}
+
 void SpaceInvadersGame::moveObjects(double delta_time)
 {
   controller.moveObject(&player, delta_time);
@@ -319,24 +385,28 @@ void SpaceInvadersGame::moveObjects(double delta_time)
     enemy_direction = 1;
   }
 
-  /*
-  if (prev_dir != enemy_direction)
-  {
-    for (int i = 0; i < NUM_OF_SHIPS; i++)
-    {
-      ships[i].direction(enemy_direction, 10);
-    }
-  }
-   */
-
   for (int i = 0; i < NUM_OF_SHIPS; i++)
   {
-    controller.moveObject(&ships[i], delta_time);
-
     ships[i].direction(enemy_direction, 0);
+  }
 
-    // controller.applyGravity(&ships[i], delta_time);
-    controller.applyQuadraticTrajectory(&ships[i], delta_time, i % ROWS);
+  switch (game_mode)
+  {
+    case 0:
+      normalEnemyMovement(prev_dir, enemy_direction, delta_time);
+      break;
+
+    case 1:
+      gravityEnemyMovement(delta_time);
+      break;
+
+    case 2:
+      quadraticEnemyMovement(delta_time);
+      break;
+
+    case 3:
+      sinEnemyMovement(delta_time);
+      break;
   }
 
   for (int i = 0; i < NUM_OF_SHOTS; i++)
@@ -453,7 +523,19 @@ void SpaceInvadersGame::render(const ASGE::GameTime&)
 
   if (in_menu)
   {
-    renderer->renderText("Press ENTER to start the game", 180, 460);
+    renderer->renderText(
+      "Please choose a mode, press ENTER to continue", 70, 260);
+
+    renderer->renderText(game_mode == 0 ? ">> Normal" : "   Normal", 260, 350);
+
+    renderer->renderText(
+      game_mode == 1 ? ">> Gravity" : "   Gravity", 255, 400);
+
+    renderer->renderText(
+      game_mode == 2 ? ">> Quadratic Curve" : "   Quadratic Curve", 210, 450);
+
+    renderer->renderText(
+      game_mode == 3 ? ">> Sine Curve" : "   Sine Curve", 240, 500);
   }
   else
   {

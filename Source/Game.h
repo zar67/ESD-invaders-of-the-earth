@@ -30,6 +30,12 @@ class SpaceInvadersGame : public ASGE::OGLGame
   void moveObjects(double delta_time);
   void shotCollision();
 
+  void
+  normalEnemyMovement(float prev_dir, float enemy_direction, double delta_time);
+  void gravityEnemyMovement(double delta_time);
+  void quadraticEnemyMovement(double delta_time);
+  void sinEnemyMovement(double delta_time);
+
   virtual void update(const ASGE::GameTime&) override;
   virtual void render(const ASGE::GameTime&) override;
 
@@ -48,4 +54,5 @@ class SpaceInvadersGame : public ASGE::OGLGame
   bool game_over = false;
   bool game_won = false;
   int score = 0;
+  int game_mode = 0;
 };

@@ -32,6 +32,7 @@ class GameObjectController
   void applyGravity(GameObject* object, double delta_time);
   void
   applyQuadraticTrajectory(GameObject* object, double delta_time, int ship_row);
+  void applySinTrajectory(GameObject* object, double delta_time, int ship_row);
 
   void gameWidth(float width);
   void gameHeight(float height);
