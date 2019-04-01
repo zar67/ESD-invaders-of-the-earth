@@ -245,7 +245,7 @@
 	<SubTexture name="shield_bronze.png" x="797" y="143" width="30" height="30"/>
 	<SubTexture name="shield_gold.png" x="797" y="113" width="30" height="30"/>
 	<SubTexture name="shield_silver.png" x="778" y="824" width="30" height="30"/>
-	<SubTexture name="speed.png" x="858" y="284" width="7" height="108"/>
+	<SubTexture name="getSpeed.png" x="858" y="284" width="7" height="108"/>
 	<SubTexture name="star1.png" x="628" y="681" width="25" height="24"/>
 	<SubTexture name="star2.png" x="222" y="84" width="25" height="24"/>
 	<SubTexture name="star3.png" x="576" y="300" width="24" height="24"/>

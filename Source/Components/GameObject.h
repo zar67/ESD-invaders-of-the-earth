@@ -43,7 +43,17 @@ class GameObject
    */
   SpriteComponent* spriteComponent();
 
+  vector2 direction();
+  void direction(float new_x, float new_y);
+  float getSpeed();
+  void setSpeed(float new_speed);
+  bool visible();
+  void visible(bool shown);
+
  private:
   void free();
   SpriteComponent* sprite_component = nullptr;
+  bool visibility = true;
+  float speed = 0;
+  vector2 velocity = vector2(0, 0);
 };
